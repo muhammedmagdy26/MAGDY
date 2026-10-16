@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F5E4A">
+<title>دفتر محمد مجدي</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="الدفتر">
+<style>
+  :root{--bg:#ECEEEB;--panel:#FAFBF9;--ink:#1B2420;--muted:#5F6B65;--line:#D3D8D3;--accent:#1F5E4A;--bad:#B23A2B}
+  @media (prefers-color-scheme: dark){:root{--bg:#141A17;--panel:#1C2420;--ink:#E6ECE8;--muted:#97A39D;--line:#2E3934;--accent:#6CC3A0;--bad:#F08B7C;color-scheme:dark}}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Tahoma,"Segoe UI",sans-serif}
+  [hidden]{display:none!important}
+  #frame{position:fixed;inset:0;width:100%;height:100%;border:0;background:var(--bg)}
+  .setup{max-width:460px;margin:0 auto;padding:32px 16px;display:flex;flex-direction:column;gap:14px}
+  .setup img{width:72px;height:72px;border-radius:16px}
+  h1{margin:0;font-size:1.5rem}
+  p{margin:0;color:var(--muted);line-height:1.6}
+  textarea{font:inherit;direction:ltr;text-align:left;width:100%;min-height:96px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink)}
+  button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:12px;background:var(--accent);color:var(--panel);cursor:pointer}
+  .err{color:var(--bad);font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="setup" id="setup" hidden>
+  <img src="icon-192.png" alt="">
+  <h1>دفتر محمد مجدي</h1>
+  <p>الصق هنا اللينك الخاص بيك اللي م. محمد بعتهولك (اللي فيه <b>?k=</b> في آخره). هتعمل كده مرة واحدة بس.</p>
+  <textarea id="link" placeholder="https://script.google.com/macros/s/.../exec?k=..."></textarea>
+  <div class="err" id="err" hidden>اللينك ده مش مظبوط. لازم يبدأ بـ https://script.google.com وفيه ‎?k=‎ في آخره.</div>
+  <button id="save">افتح الدفتر</button>
+  <p>عشان تغيّر اللينك بعد كده، افتح الأبلكيشن وضيف <b>#reset</b> في آخر العنوان، أو امسح الأبلكيشن وسطّبه تاني.</p>
+</div>
+<iframe id="frame" hidden title="الدفتر" allow="clipboard-write"></iframe>
+<script>
+(function(){
+  var KEY='daftar_link', setup=document.getElementById('setup'), frame=document.getElementById('frame');
+  function get(){try{return localStorage.getItem(KEY)}catch(e){return null}}
+  function put(v){try{localStorage.setItem(KEY,v)}catch(e){}}
+  function valid(u){return /^https:\/\/script\.google\.com\/[^\s]+\/exec\?(.*&)?k=[A-Za-z0-9]{20,}/.test(u)}
+  function show(u){setup.hidden=true;frame.hidden=false;frame.src=u}
+  function ask(){frame.hidden=true;setup.hidden=false;var l=get();if(l)document.getElementById('link').value=l}
+  // a link can also arrive in the address: .../?u=<encoded personal link>
+  var q=new URLSearchParams(location.search).get('u');
+  if(q&&valid(q)){put(q);history.replaceState(null,'',location.pathname)}
+  if(location.hash==='#reset'){history.replaceState(null,'',location.pathname);ask()}
+  else{var l=get();if(l&&valid(l))show(l);else ask()}
+  document.getElementById('save').onclick=function(){
+    var v=document.getElementById('link').value.trim();
+    if(!valid(v)){document.getElementById('err').hidden=false;return}
+    document.getElementById('err').hidden=true;put(v);show(v);
+  };
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
+})();
+</script>
+</body>
+</html>
